@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Upload POC</title>
+</head>
+<body>
+  <input type="file" id="fileInput">
+  <button id="uploadBtn">Upload</button>
+  <div id="progress"></div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progress = document.getElementById('progress');
+
+    uploadBtn.addEventListener('click', function() {
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please select a file.');
+        return;
+      }
+
+      const worker = new Worker('worker.js');
+
+      worker.postMessage({ file: file });
+
+      worker.onmessage = function(e) {
+        const data = e.data;
+        if (data.type === 'progress') {
+          progress.textContent = 'Upload Progress: ' + data.percent + '%';
+        } else if (data.type === 'complete') {
+          progress.textContent = 'Upload Complete. Response: ' + data.response;
+        } else if (data.type === 'error') {
+          progress.textContent = 'Error: ' + data.response;
+        }
+      };
+    });
+  </script>
+</body>
+</html>
